@@ -33,7 +33,6 @@ void __ISR(_TIMER_1_VECTOR, IPL3) Timer1_ISR(void) {
 // === Timer 2 interrupt handler =====================================
 // ipl2 means "interrupt priority level 2"
 // ASM output is 47 instructions for the ISR
-
 void __ISR(_TIMER_2_VECTOR, ipl2) Timer2Handler(void) {
     // clear the interrupt flag
     mT2ClearIntFlag();
@@ -45,7 +44,6 @@ void __ISR(_TIMER_2_VECTOR, ipl2) Timer2Handler(void) {
 }
 
 // === Thread 1 ======================================================
-
 /**
  * The first protothread function. A protothread function must always
  * return an integer, but must never explicitly return - returning is
@@ -79,7 +77,7 @@ static PT_THREAD(protothread1(struct pt *pt)) {
         time_thread_1 = milliSec + wait_t1;
         /* And we loop. */
     } // END WHILE(1)
-    LD0 = !LED_OFF;
+    LD0 = LED_OFF;
     /* All protothread functions must end with PT_END() which takes a
        pointer to a struct pt. */
     PT_END(pt);
@@ -162,16 +160,3 @@ int main(void) {
         PT_SCHEDULE(protothread2(&pt2));
     }
 }
-
-int main2(void) {
-    int i;
-    MMBInit(); // Initialize the MikroE MMB board
-    StartTimer1(); //Start Timer1
-
-    while (1) {
-        for (i = 0; i < 1000000; i++);
-    }
-}
-
-
-
