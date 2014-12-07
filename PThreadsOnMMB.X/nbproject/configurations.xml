@@ -12,6 +12,9 @@
       <logicalFolder name="f2" displayName="MMB" projectFiles="true">
         <itemPath>../MMB/MMB.h</itemPath>
       </logicalFolder>
+      <logicalFolder name="f3" displayName="Protothreads" projectFiles="true">
+        <itemPath>../PT/pt.h</itemPath>
+      </logicalFolder>
       <itemPath>../GraphicsConfig.h</itemPath>
       <itemPath>../HardwareProfile.h</itemPath>
     </logicalFolder>
@@ -83,7 +86,7 @@
         <property key="enable-unroll-loops" value="false"/>
         <property key="exclude-floating-point" value="false"/>
         <property key="extra-include-directories"
-                  value="..\MMB;..\Microchip\Include;..\"/>
+                  value="..\MMB;..\Microchip\Include;..\PT;..\"/>
         <property key="generate-16-bit-code" value="false"/>
         <property key="generate-micro-compressed-code" value="false"/>
         <property key="isolate-each-function" value="false"/>
@@ -162,8 +165,7 @@
         <property key="enable-unroll-loops" value="false"/>
         <property key="exceptions" value="true"/>
         <property key="exclude-floating-point" value="false"/>
-        <property key="extra-include-directories"
-                  value="..\MMB;..\Microchip\Include\Graphics;..\"/>
+        <property key="extra-include-directories" value="..\MMB;..\"/>
         <property key="generate-16-bit-code" value="false"/>
         <property key="generate-micro-compressed-code" value="false"/>
         <property key="isolate-each-function" value="false"/>

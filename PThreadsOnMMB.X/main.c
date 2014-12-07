@@ -1,9 +1,9 @@
 #include <plib.h>
+#include "PT/pt.h"
 #include "MMB.h"
 #include "HardwareProfile.h"
 #include "GraphicsConfig.h"
 #include "LCDTerminal.h"
-
 
 // Configuration bits
 #pragma config POSCMOD = XT, FNOSC = PRIPLL, FSOSCEN = ON
@@ -34,25 +34,10 @@ void __ISR(_TIMER_1_VECTOR, IPL3) Timer1_ISR(void)
     }
 }
 
-void __ISR(_TIMER_2_VECTOR, IPL4) Timer2_ISR(void){
-    mT2ClearIntFlag();
-    countForTimer2++;
-
-    if (countForTimer2 == 50) { //2 second delay, blink LD1
-        LD1 = !LD1;
-        countForTimer2 = 0;
-    }
-}
-
 void StartTimer1()
 {
     ConfigIntTimer1(T1_INT_ON | T1_INT_PRIOR_3 | T1_INT_SUB_PRIOR_1);
     OpenTimer1(T1_ON | T1_IDLE_CON | T1_PS_1_256 | T1_SOURCE_INT, 12500);
-}
-
-void StartTimer2(){
-    ConfigIntTimer2(T2_INT_ON | T2_INT_PRIOR_2| T2_INT_SUB_PRIOR_1);
-    OpenTimer2(T2_ON | T2_IDLE_CON | T2_PS_1_256 | T2_SOURCE_INT, 12500);
 }
 
 int main(void)
@@ -66,7 +51,6 @@ int main(void)
     MMBGetKey();
 
     StartTimer1(); //Start Timer1
-    //StartTimer2(); //Start Timer2
 
     while (1) {
         for (i=0; i<1000000; i++){
