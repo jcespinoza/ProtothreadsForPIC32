@@ -1,18 +1,81 @@
-/* 
- * File:   main.c
- * Author: amdy32
- *
- * Created on December 6, 2014, 7:48 PM
- */
+#include <plib.h>
+#include "MMB.h"
+#include "HardwareProfile.h"
+#include "GraphicsConfig.h"
+#include "LCDTerminal.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 
-/*
- * 
- */
-int main(int argc, char** argv) {
+// Configuration bits
+#pragma config POSCMOD = XT, FNOSC = PRIPLL, FSOSCEN = ON
+#pragma config FPLLIDIV = DIV_2, FPLLMUL = MUL_20, FPLLODIV = DIV_1, FPBDIV = DIV_1
+#pragma config OSCIOFNC = ON, CP = OFF, BWP = OFF, PWP = OFF
+#define CPU_FREQ (80000000ul)
 
-    return (EXIT_SUCCESS);
+// fonts
+extern const FONT_FLASH TerminalFont;
+
+//Global variables
+volatile int countForTimer1 = 0;
+volatile int countForTimer2 = 0;
+volatile int doRefresh = 0;
+
+//This routine gets executed every 40ms
+void __ISR(_TIMER_1_VECTOR, IPL3) Timer1_ISR(void)
+{
+    mT1ClearIntFlag();
+    countForTimer1++;
+
+    if (countForTimer1 == 25) { //1 second delay, blink LD0
+        LD0 = !LD0;
+        LD1 = !LD1;
+        LD2 = !LD2;
+        LD3 = !LD3;
+        countForTimer1 = 0;
+    }
 }
+
+void __ISR(_TIMER_2_VECTOR, IPL4) Timer2_ISR(void){
+    mT2ClearIntFlag();
+    countForTimer2++;
+
+    if (countForTimer2 == 50) { //2 second delay, blink LD1
+        LD1 = !LD1;
+        countForTimer2 = 0;
+    }
+}
+
+void StartTimer1()
+{
+    ConfigIntTimer1(T1_INT_ON | T1_INT_PRIOR_3 | T1_INT_SUB_PRIOR_1);
+    OpenTimer1(T1_ON | T1_IDLE_CON | T1_PS_1_256 | T1_SOURCE_INT, 12500);
+}
+
+void StartTimer2(){
+    ConfigIntTimer2(T2_INT_ON | T2_INT_PRIOR_2| T2_INT_SUB_PRIOR_1);
+    OpenTimer2(T2_ON | T2_IDLE_CON | T2_PS_1_256 | T2_SOURCE_INT, 12500);
+}
+
+int main(void)
+{
+    int i;
+    MMBInit(); // Initialize the MikroE MMB board
+    LCDInit();
+
+    LCDSetXY(1,5);
+    LCDPutString("Move the joystick");
+    MMBGetKey();
+
+    StartTimer1(); //Start Timer1
+    //StartTimer2(); //Start Timer2
+
+    while (1) {
+        for (i=0; i<1000000; i++){
+            SetColor(WHITE);
+            LCDSetXY(1,5);
+            LCDPutString("Olis");
+        }
+    }
+}
+
+
 
