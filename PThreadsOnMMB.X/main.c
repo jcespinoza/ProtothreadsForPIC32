@@ -10,93 +10,65 @@
 #pragma config FPLLIDIV = DIV_2, FPLLMUL = MUL_20, FPLLODIV = DIV_1, FPBDIV = DIV_1
 #pragma config OSCIOFNC = ON, CP = OFF, BWP = OFF, PWP = OFF
 #define CPU_FREQ (80000000ul)
+#define LED1 LATBbits.LATB3
+#define LED2 LATBbits.LATB2
+#define LED3 LATBbits.LATB1
+#define LED4 LATBbits.LATB0
+#define LED5 LATBbits.LATB5
 
 //Global variables
-static int protothread1_flag, protothread2_flag;
 volatile int milliSec;
-volatile int countForTimer = 0;
 
-void __ISR(_TIMER_1_VECTOR, IPL3) Timer1_ISR(void) {
+void __ISR(_TIMER_1_VECTOR, IPL2) Timer2Handler(void) {
     mT1ClearIntFlag();
-    countForTimer++;
-
-    if (countForTimer == 25) { //1 second delay, blink LD0
-        LD0 = !LD0;
-        LD1 = !LD1;
-        LD2 = !LD2;
-        LD3 = !LD3;
-        countForTimer = 0;
-    }
-}
-
-void __ISR(_TIMER_2_VECTOR, ipl2) Timer2Handler(void) {
-    mT2ClearIntFlag();
     milliSec++;
-    if(milliSec % 25 == 0){
-        LD3 = !LD3;
-    }
 }
 
 static PT_THREAD(protothread1(struct pt *pt)) {
-    static int time_thread_1;
-#define wait_t1 1000
     PT_BEGIN(pt);
 
     while (1) {
-
-        PT_WAIT_UNTIL(pt, protothread2_flag != 0);
+        PT_WAIT_UNTIL(pt, milliSec == 2500);
         LD0 = !LD0;
-
-       protothread2_flag = 0;
-       protothread1_flag = 1;
-
-        PT_YIELD_UNTIL(pt, milliSec > time_thread_1);
-        time_thread_1 = milliSec + wait_t1;
     }
-    LD0 = LED_OFF;
+
     PT_END(pt);
 }
 
 static PT_THREAD(protothread2(struct pt *pt)) {
-    static int time_thread_2;
-#define wait_t2 4000
-
     PT_BEGIN(pt);
 
     while (1) {
-
-        PT_WAIT_UNTIL(pt, protothread1_flag != 0);
-        LD1 = !LD1;
-
-        protothread1_flag = 0;
-        protothread2_flag = 1;
-
-        time_thread_2 = milliSec + wait_t2;
+        PT_WAIT_UNTIL(pt, milliSec == 1000);
+        milliSec = 0;
+        LED1 = !LED1;
+        LED2 = !LED2;
+        LED3 = !LED3;
+        LED4 = !LED4;
+        LED5 = !LED5;
     }
-    LD1 = LED_OFF;
     PT_END(pt);
 }
 
-void StartTimer1() {
-    ConfigIntTimer1(T1_INT_ON | T1_INT_PRIOR_3 | T1_INT_SUB_PRIOR_1);
-    OpenTimer1(T1_ON | T1_IDLE_CON | T1_PS_1_256 | T1_SOURCE_INT, 12500);
+void StartISRTimer1(){
+    ConfigIntTimer1(T1_INT_ON | T1_INT_PRIOR_2 | T1_INT_SUB_PRIOR_1);
+    OpenTimer1(T1_ON | T1_PS_1_1 | T1_SOURCE_INT, 30000);
+    INTEnableSystemMultiVectoredInt();
+    milliSec = 0;
+}
+
+void EnableRBPinsForLeds(){
+    TRISB = 0;
+    PORTB = 0;
 }
 
 static struct pt pt1, pt2;
 
 int main(void) {
-
     MMBInit();
-    ConfigIntTimer2(T2_INT_ON | T2_INT_PRIOR_2);
-    OpenTimer2(T2_ON | T2_SOURCE_INT | T2_PS_1_1, 30000);
-    mT2ClearIntFlag();
-    milliSec = 0;
-    
-    INTEnableSystemMultiVectoredInt();
-
-    protothread2_flag = 1;
-    protothread1_flag = 0;
-
+    StartISRTimer1();
+    EnableRBPinsForLeds();
+ 
     PT_INIT(&pt1);
     PT_INIT(&pt2);
 
